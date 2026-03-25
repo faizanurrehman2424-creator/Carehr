@@ -40,6 +40,7 @@ export default function Page() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   
   const [chatInput, setChatInput] = useState("");
@@ -132,6 +133,7 @@ export default function Page() {
             alert("Please agree to the Privacy Policy and Terms of Service.");
             return;
         }
+        setIsLoggingIn(true);
     }
 
     try {
@@ -159,6 +161,8 @@ export default function Page() {
     } catch (e) { 
         console.error(e);
         if(!isSilent) alert("Failed to connect to the database.");
+    } finally {
+        if (!isSilent) setIsLoggingIn(false);
     }
   };
 
@@ -381,8 +385,21 @@ export default function Page() {
                 </div>
               </div>
 
-              <button onClick={() => handleProfileLogin(false)} className="w-full py-4 mt-2 bg-gray-900 text-white dark:bg-white dark:text-gray-900 font-bold rounded-xl shadow-lg hover:opacity-90 transition-all transform hover:-translate-y-0.5">
-                  Log In 
+              <button 
+                  onClick={() => handleProfileLogin(false)} 
+                  disabled={isLoggingIn}
+                  className={`w-full flex items-center justify-center py-4 mt-2 font-bold rounded-xl shadow-lg transition-all transform ${
+                      isLoggingIn 
+                      ? 'bg-gray-400 text-gray-100 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed scale-[0.98]' 
+                      : 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 hover:opacity-90 hover:-translate-y-0.5'
+                  }`}
+              >
+                  {isLoggingIn ? (
+                      <>
+                          <svg className="w-5 h-5 mr-3 animate-spin border-2 border-white dark:border-gray-900 border-t-transparent rounded-full" viewBox="0 0 24 24"></svg>
+                          Logging in...
+                      </>
+                  ) : "Log In"}
               </button>
             </div>
           </div>

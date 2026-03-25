@@ -177,14 +177,31 @@ async def process_ahpra_full_flow(first_name: str, last_name: str, role: str, em
     
     verification_status = "Pending"
     details_msg = ""
+    scraped_name = "Unknown"
 
     if reg_id and reg_id != "Not Found":
         try:
-            result = await verify_ahpra_live(reg_id, last_name)
+            result = await verify_ahpra_full(
+                registration_id=reg_id,
+                candidate_first=first_name,
+                candidate_last=last_name
+            )
             raw_status = result.get("status", "Error")
-            details_msg = result.get("details", "")
-            if raw_status == "Error": verification_status = "Pending"
-            else: verification_status = raw_status
+            name_match = result.get("name_match")
+            scraped_name = result.get("practitioner_name", "Unknown")
+            
+            if raw_status == "Verified":
+                if name_match is True:
+                    verification_status = "AHPRA_VERIFIED"
+                elif name_match is False:
+                    verification_status = "AHPRA_NAME_MISMATCH"
+                else:
+                    verification_status = "AHPRA_VERIFIED"
+            elif raw_status == "Not Found":
+                verification_status = "AHPRA_NOT_FOUND"
+            else:
+                verification_status = "Pending"
+                details_msg = "System check failed"
         except Exception:
             verification_status = "Pending"
             details_msg = "System check failed"
@@ -198,7 +215,24 @@ async def process_ahpra_full_flow(first_name: str, last_name: str, role: str, em
     manager_email = EMAIL_TO_OVERRIDE
     if manager_email:
         subject = f"AHPRA Check Result: {first_name} {last_name} -> {verification_status}"
-        body_lines = ["Automated AHPRA Verification Report", "-----------------------------------", f"Candidate: {first_name} {last_name}", f"Role: {role}", f"AHPRA ID: {reg_id}", "", f"STATUS: {verification_status.upper()}", ""]
+        body_lines = [
+            "Automated AHPRA Verification Report", 
+            "-----------------------------------", 
+            f"Candidate: {first_name} {last_name}", 
+            f"Role: {role}", 
+            f"AHPRA ID: {reg_id}", 
+            ""
+        ]
+
+        if verification_status == "AHPRA_NAME_MISMATCH":
+            body_lines.extend([
+                "STATUS: WARNING - NAME MISMATCH",
+                f"Details: The AHPRA registration is valid, but the name on the official register ({scraped_name}) does not perfectly match the candidate's name ({first_name} {last_name}). Please review manually.",
+                ""
+            ])
+        else:
+            body_lines.extend([f"STATUS: {verification_status.upper()}", ""])
+
         send_summary_email(manager_email, subject, "\n".join(body_lines))
 
 @app.get("/health")
