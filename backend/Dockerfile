@@ -1,7 +1,6 @@
 # Use a base image that already has Playwright & Python installed
 # This saves us from installing Chrome manually for the AHPRA check
-FROM mcr.microsoft.com/playwright/python:v1.40.0-jammy
-
+FROM mcr.microsoft.com/playwright/python:v1.58.0-jammy
 # 1. Install Tesseract OCR (The missing piece!)
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
