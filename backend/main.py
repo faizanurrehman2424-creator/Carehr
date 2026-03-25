@@ -38,7 +38,7 @@ SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER") 
 SMTP_PASS = os.environ.get("SMTP_PASS") 
 EMAIL_FROM = os.environ.get("EMAIL_FROM", SMTP_USER)
-EMAIL_TO_OVERRIDE = os.environ.get("EMAIL_TO") 
+EMAIL_TO_OVERRIDE = os.environ.get("EMAIL_TO", SMTP_USER)
 
 engine = create_engine(
     DATABASE_URL,
