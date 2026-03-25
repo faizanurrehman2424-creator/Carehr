@@ -195,9 +195,13 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
               ) : (
                   <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-4 pt-2">
                       {uploadedFiles.length === 0 ? (
-                          <div className="text-center py-10 text-white/40 bg-black/10 rounded-2xl border-2 border-dashed border-white/10">
-                              <svg className="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                              <p className="text-xs font-bold uppercase tracking-widest">Vault is Empty</p>
+                          <div className="text-center py-12 px-6 bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] relative overflow-hidden group">
+                              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                              <div className="w-16 h-16 mx-auto mb-4 bg-white/10 rounded-2xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-inner">
+                                  <svg className="w-8 h-8 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                              </div>
+                              <p className="text-xs font-black uppercase tracking-[0.2em] text-white/70">Vault is Empty</p>
+                              <p className="text-[10px] font-medium text-white/40 mt-2">Documents will appear here</p>
                           </div>
                       ) : (
                           uploadedFiles.map(file => {
@@ -207,8 +211,9 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
                               const isAhpraVerified = file.status?.startsWith("AHPRA_");
 
                               return (
-                              <div key={file.stableId} className={`bg-white/10 border ${file.status === 'FAKE' ? 'border-red-500/50 bg-red-900/20' : isAhpraVerified ? (file.status === 'AHPRA_VERIFIED' ? 'border-emerald-400/50 bg-emerald-900/10' : file.status === 'AHPRA_NAME_MISMATCH' ? 'border-orange-400/50 bg-orange-900/10' : 'border-red-400/50 bg-red-900/10') : 'border-white/10'} rounded-2xl p-4 shadow-lg backdrop-blur-sm hover:bg-white/20 transition-all relative group`}>
+                              <div key={file.stableId} className={`bg-white/10 border ${file.status === 'FAKE' ? 'border-red-500/50 bg-red-900/20' : isAhpraVerified ? (file.status === 'AHPRA_VERIFIED' ? 'border-emerald-400/50 bg-emerald-900/20' : file.status === 'AHPRA_NAME_MISMATCH' ? 'border-orange-400/50 bg-orange-900/20' : 'border-red-400/50 bg-red-900/20') : 'border-white/20'} rounded-2xl p-4 shadow-lg backdrop-blur-md hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-white/20 transition-all duration-300 relative group flex flex-col gap-4`}>
                                   
+                                  {/* Delete Button */}
                                   <button 
                                       type="button"
                                       onClick={(e) => {
@@ -222,7 +227,8 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
                                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
                                   </button>
 
-                                  <div className="flex items-start gap-4 mb-4 pr-6 relative">
+                                  {/* Top Row: Icon & File Details */}
+                                  <div className="flex items-start gap-4 pr-6 relative">
                                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-xs shadow-md relative ${file.status === 'FAKE' ? 'bg-red-100 text-red-600' : 'bg-white text-teal-600'}`}>
                                           PDF
                                           {file.status === 'FAKE' && (
@@ -236,36 +242,26 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
                                               </div>
                                           )}
                                           {file.status === 'VALID' && (
-                                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg" title="Verified">
+                                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg" title="Verified">
                                                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" /></svg>
-                                              </div>
-                                          )}
-                                          {/* AHPRA verification badge */}
-                                          {verificationBadge && (
-                                              <div className={`absolute -top-1 -right-1 w-4 h-4 ${verificationBadge.color} text-white rounded-full flex items-center justify-center shadow-lg`} title={verificationBadge.label}>
-                                                  {verificationBadge.icon}
                                               </div>
                                           )}
                                       </div>
                                       <div className="min-w-0 flex-1">
-                                          <p className="text-xs font-black text-white truncate" title={file.filename}>{file.filename}</p>
-                                          <p className={`text-[10px] font-bold mt-1 uppercase tracking-widest ${file.status === 'FAKE' ? 'text-red-300' : 'text-teal-100'}`}>{file.category.replace("_", " ")}</p>
-                                          {/* AHPRA verification status text */}
-                                          {verificationBadge && (
-                                              <p className={`text-[9px] font-bold mt-1 uppercase tracking-widest ${verificationBadge.textColor}`}>
-                                                  {verificationBadge.label}
-                                              </p>
-                                          )}
+                                          <p className="text-xs font-black text-white truncate drop-shadow-sm" title={file.filename}>{file.filename}</p>
+                                          <p className={`text-[10px] font-bold mt-1 uppercase tracking-widest ${file.status === 'FAKE' ? 'text-red-300' : 'text-teal-100/90'}`}>{file.category.replace("_", " ")}</p>
                                       </div>
                                   </div>
+
+                                  {/* Middle Row: Action Buttons */}
                                   <div className="flex gap-2">
                                       {file.viewLink ? (
                                           <a href={file.viewLink} target="_blank" rel="noreferrer" className="flex-1 text-center bg-white text-gray-900 hover:bg-gray-100 font-black text-[10px] py-2.5 rounded-xl transition-all shadow-md uppercase tracking-wider">View</a>
                                       ) : (
                                           <button disabled className="flex-1 text-center bg-black/20 text-white/30 font-black text-[10px] py-2.5 rounded-xl border border-transparent cursor-not-allowed uppercase tracking-wider">No Link</button>
                                       )}
-                                      {/* AHPRA Verify Button — Active for AHPRA docs, disabled for others */}
-                                      {isAhpra && !isAhpraVerified ? (
+                                      {/* AHPRA Verify Button (only if AHPRA document AND not yet verified) */}
+                                      {isAhpra && !isAhpraVerified && (
                                           <button 
                                               onClick={(e) => {
                                                   e.preventDefault();
@@ -281,26 +277,27 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
                                           >
                                               {isVerifying ? (
                                                   <span className="flex items-center justify-center gap-1.5">
-                                                      <div className="w-2.5 h-2.5 border-2 border-white/60 border-t-transparent rounded-full animate-spin"></div>
+                                                      <div className="w-2.5 h-2.5 border-[1.5px] border-white/60 border-t-transparent rounded-full animate-spin"></div>
                                                       Verifying...
                                                   </span>
                                               ) : (
                                                   "Verify AHPRA"
                                               )}
                                           </button>
-                                      ) : isAhpraVerified ? (
-                                          <div className={`flex-1 text-center font-black text-[10px] py-2.5 rounded-xl uppercase tracking-wider flex items-center justify-center gap-1.5 ${
-                                              file.status === 'AHPRA_VERIFIED' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                                              file.status === 'AHPRA_NAME_MISMATCH' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' :
-                                              'bg-red-500/20 text-red-300 border border-red-500/30'
-                                          }`}>
-                                              {verificationBadge?.icon}
-                                              {verificationBadge?.label || 'Checked'}
-                                          </div>
-                                      ) : (
-                                          <button disabled title="Only AHPRA documents can be verified" className="flex-1 text-center bg-black/20 text-white/40 font-black text-[10px] py-2.5 rounded-xl border border-white/10 cursor-not-allowed uppercase tracking-wider">Verify</button>
                                       )}
                                   </div>
+
+                                  {/* Bottom Row / Full-width Status Strip: AHPRA Verified Status */}
+                                  {isAhpraVerified && verificationBadge && (
+                                      <div className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border font-black text-[10px] uppercase tracking-wider shadow-inner ${
+                                          file.status === 'AHPRA_VERIFIED' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
+                                          file.status === 'AHPRA_NAME_MISMATCH' ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' :
+                                          'bg-red-500/20 text-red-300 border-red-500/30'
+                                      }`}>
+                                          <span className="opacity-80 scale-110">{verificationBadge.icon}</span>
+                                          <span>{verificationBadge.label}</span>
+                                      </div>
+                                  )}
                               </div>
                               );
                           })
