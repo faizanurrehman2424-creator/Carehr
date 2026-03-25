@@ -546,3 +546,64 @@ def light_validate_document(document_id: str):
         logger.error(f"light_validate_document error for {document_id}: {e}")
     finally:
         db.close()
+
+@app.get("/export")
+def export_data():
+    db = next(db_session())
+    try:
+        results = []
+        candidates = db.query(Candidate).all()
+        cand_map = {c.id: c for c in candidates}
+        docs = db.query(Document).all()
+        for d in docs:
+            c = cand_map.get(d.candidate_id)
+            if not c: continue
+            results.append({
+                "candidate_id": c.id,
+                "first_name": c.first_name,
+                "last_name": c.last_name,
+                "email": c.email,
+                "role": c.role,
+                "category": d.category,
+                "filename": d.filename,
+                "status": d.status,
+                "expiry_date": d.expiry_date.isoformat() if d.expiry_date else None,
+                "view_link": d.drive_view_link,
+                "extracted": d.extracted_json or {}
+            })
+        return results
+    except Exception as e:
+        logger.error(f"Error during /export: {e}")
+        raise HTTPException(status_code=500, detail="Export failed")
+    finally:
+        db.close()
+
+@app.get("/export/salesforce")
+def export_salesforce():
+    db = next(db_session())
+    try:
+        results = []
+        candidates = db.query(Candidate).all()
+        cand_map = {c.id: c for c in candidates}
+        docs = db.query(Document).all()
+        for d in docs:
+            c = cand_map.get(d.candidate_id)
+            if not c: continue
+            results.append({
+                "Contact_ID": c.id,
+                "FirstName": c.first_name,
+                "LastName": c.last_name,
+                "Email": c.email,
+                "Title": c.role,
+                "Document_Category": d.category,
+                "Document_Name": d.filename,
+                "Compliance_Status": d.status,
+                "Expiration_Date": d.expiry_date.isoformat() if d.expiry_date else "",
+                "File_Link": d.drive_view_link or ""
+            })
+        return results
+    except Exception as e:
+        logger.error(f"Error during /export/salesforce: {e}")
+        raise HTTPException(status_code=500, detail="Salesforce export failed")
+    finally:
+        db.close()
