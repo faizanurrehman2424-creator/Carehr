@@ -1,0 +1,30 @@
+# --- IGNORE EVERYWHERE ---
+node_modules/
+.DS_Store
+
+# --- BACKEND SPECIFIC ---
+backend/venv/
+backend/env/
+backend/__pycache__/
+backend/chrome_data/
+backend/token.pickle
+backend/token.json  
+backend/client_secret.json
+*.pyc
+
+# --- FRONTEND SPECIFIC ---
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel
+
+# --- UPLOADS (Crucial) ---
+documents/
+*.pdf
+*.docx
+
+# --- SECRETS ---
+.env
+backend/service_account.json
+service_account.json
+*.db

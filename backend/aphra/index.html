@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AHPRA Verification Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-dark-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-glass: rgba(255, 255, 255, 0.05);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg-dark-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 650px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            text-align: center;
+        }
+
+        .header h1 {
+            font-weight: 800;
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: var(--card-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #818cf8;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            gap: 1rem;
+        }
+
+        input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary), #818cf8);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 1rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, var(--primary-hover), var(--primary));
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            background: #4b5563;
+            box-shadow: none;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-badge {
+            align-self: flex-start;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-badge.verified {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-badge.not-verified {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .detail-item {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1.2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            font-size: 1.05rem;
+            word-break: break-all;
+        }
+
+        .raw-content {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 1rem;
+            border-radius: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #a7f3d0;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: none;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AHPRA Verify</h1>
+            <p>Background Registration Verification Tool</p>
+        </div>
+
+        <div class="card">
+            <div class="input-group">
+                <label for="ahpraNumber">Registration Number</label>
+                <div class="input-wrapper">
+                    <input type="text" id="ahpraNumber" placeholder="e.g. NMW0001537428" value="NMW0001537428">
+                    <button id="verifyBtn" onclick="verifyAhpra()">
+                        <div class="spinner" id="spinner"></div>
+                        <span id="btnText">Verify</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="errorMessage" class="error-message"></div>
+
+            <div id="resultsPanel" class="results">
+                <div id="statusBadge" class="status-badge"></div>
+
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Name</div>
+                        <div class="detail-value" id="res_name">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Profession</div>
+                        <div class="detail-value" id="res_profession">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value" id="res_status">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Expiry</div>
+                        <div class="detail-value" id="res_expiry">-</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label style="font-size: 0.8rem; cursor: pointer;" onclick="toggleRaw()">📋 Toggle Raw Details</label>
+                    <pre id="rawContent" class="raw-content"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleRaw() {
+            const el = document.getElementById('rawContent');
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+
+        async function verifyAhpra() {
+            const input = document.getElementById('ahpraNumber').value.trim();
+            const btn = document.getElementById('verifyBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('spinner');
+            const resultsPanel = document.getElementById('resultsPanel');
+            const badge = document.getElementById('statusBadge');
+            const errorDiv = document.getElementById('errorMessage');
+
+            if (!input) {
+                alert('Please enter an AHPRA registration number');
+                return;
+            }
+
+            // UI Reset
+            resultsPanel.style.display = 'none';
+            errorDiv.style.display = 'none';
+            btn.disabled = true;
+            btnText.innerText = 'Verifying...';
+            spinner.style.display = 'block';
+
+            try {
+                // Point to your FastAPI endpoint
+                // Assuming it runs on port 8000 on localhost
+                const response = await fetch(`http://localhost:8000/api/verify/${input}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'API Request failed');
+                }
+
+                if (data.error) {
+                    if (data.error.includes("Blocked") || data.error.includes("Firewall")) {
+                        errorDiv.innerHTML = `⚠️ <b>Block Detected:</b> ${data.error}<br>You might need a proxy or wait for cooldown.`;
+                    } else {
+                        errorDiv.innerText = `Error: ${data.error}`;
+                    }
+                    errorDiv.style.display = 'block';
+                    
+                    // Show result panel anyway if we got some parsed data with error
+                    if (data.verified !== undefined) {
+                         setupResults(data);
+                    }
+                    return;
+                }
+
+                setupResults(data);
+
+            } catch (err) {
+                console.error(err);
+                errorDiv.innerText = `Failed to connect to API. Is fastAPI running on localhost:8000?\n(${err.message})`;
+                errorDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btnText.innerText = 'Verify';
+                spinner.style.display = 'none';
+            }
+        }
+
+        function setupResults(data) {
+            const resultsPanel = document.getElementById('resultsPanel');
+            const badge = document.getElementById('statusBadge');
+            
+            resultsPanel.style.display = 'flex';
+
+            if (data.verified) {
+                badge.className = 'status-badge verified';
+                badge.innerText = '✓ Verified Practitioner';
+            } else {
+                badge.className = 'status-badge not-verified';
+                badge.innerText = '✗ Not Verified';
+            }
+
+            document.getElementById('res_name').innerText = data.practitioner_name || 'N/A';
+            document.getElementById('res_profession').innerText = data.profession || 'N/A';
+            document.getElementById('res_status').innerText = data.registration_status || data.registration_type || 'N/A';
+            document.getElementById('res_expiry').innerText = data.registration_expiry || 'N/A';
+
+            document.getElementById('rawContent').innerText = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>
