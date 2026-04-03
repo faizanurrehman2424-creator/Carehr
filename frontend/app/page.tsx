@@ -306,7 +306,7 @@ export default function Page() {
                  />
               </div>              
             </div>
-            <h1 className="text-2xl font-extrabold mb-2 text-white leading-tight drop-shadow-md">
+            <h1 className="text-2xl font-bold mb-2 text-white leading-tight drop-shadow-md">
               From paperwork to people work, AI agents create seamless onboarding for healthcare.
             </h1>
           </div>
