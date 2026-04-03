@@ -307,11 +307,8 @@ export default function Page() {
               </div>              
             </div>
             <h1 className="text-2xl font-extrabold mb-2 text-white leading-tight drop-shadow-md">
-              Credentialled, Connected, Cared for.
-            </h1>
-            <p className="text-cyan-50 dark:text-gray-300 text-sm max-w-md mx-auto leading-relaxed font-medium opacity-90">
               From paperwork to people work, AI agents create seamless onboarding for healthcare.
-            </p>
+            </h1>
           </div>
         </div>
 
