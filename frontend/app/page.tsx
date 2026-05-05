@@ -168,11 +168,11 @@ export default function Page() {
 
   const handleFilesSelected = async (files: File[]) => {
     setIsDragging(false); 
-    const pdfs = files.filter(f => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"));
-    if (pdfs.length === 0) return;
+    const docsToUpload = files.filter(f => f.type === "application/pdf" || f.type.startsWith("image/") || f.name.match(/\.(pdf|png|jpe?g|webp)$/i));
+    if (docsToUpload.length === 0) return;
 
-    setUploadState({ status: 'uploading', message: `Uploading ${pdfs.length} file(s)...` });
-    addNotification("Upload Started", `Processing ${pdfs.length} document(s)...`, "info");
+    setUploadState({ status: 'uploading', message: `Uploading ${docsToUpload.length} file(s)...` });
+    addNotification("Upload Started", `Processing ${docsToUpload.length} document(s)...`, "info");
     setIsNotifOpen(true); 
 
     try {
@@ -183,7 +183,7 @@ export default function Page() {
         formData.append("role", role);
         formData.append("dob", "");
 
-        for (const f of pdfs) {
+        for (const f of docsToUpload) {
             formData.append("files", f);
             formData.append("categories", autoCategorizeFile(f.name, role));
         }
@@ -499,7 +499,7 @@ export default function Page() {
                     <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full shadow-lg mb-4 animate-bounce border border-gray-200 dark:border-gray-700">
                         <svg className="w-12 h-12 text-gray-900 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
                     </div>
-                    <p className="text-gray-900 dark:text-white font-extrabold text-2xl tracking-tight">Drop PDF documents here</p>
+                    <p className="text-gray-900 dark:text-white font-extrabold text-2xl tracking-tight">Drop documents or images here</p>
                     <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">They will instantly upload to your vault.</p>
                 </div>
             )}
@@ -538,7 +538,7 @@ export default function Page() {
             <div className="p-6 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] z-10">
               <div className="max-w-4xl mx-auto flex gap-2 p-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-inner relative items-center">
                   
-                  <input type="file" accept="application/pdf" multiple className="hidden" id="chat-file-upload" onChange={(e) => {
+                  <input type="file" accept="application/pdf,image/png,image/jpeg,image/webp" multiple className="hidden" id="chat-file-upload" onChange={(e) => {
                       if(e.target.files) handleFilesSelected(Array.from(e.target.files));
                       e.target.value = '';
                   }} />
@@ -551,7 +551,7 @@ export default function Page() {
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                      placeholder="Ask me anything, or drop a PDF here..."
+                      placeholder="Ask me anything, or drop a PDF/image here..."
                       className="flex-1 bg-transparent p-2 outline-none text-gray-900 dark:text-white placeholder-gray-400 text-[15px] font-medium" 
                   />
                   

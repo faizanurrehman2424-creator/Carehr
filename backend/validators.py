@@ -141,6 +141,10 @@ def extract_text_from_image(path: str) -> str:
         return ""
 
 def extract_text_file(path: str) -> str:
+    ext = os.path.splitext(path)[1].lower()
+    if ext in [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff"]:
+        return extract_text_from_image(path)
+        
     try:
         text = extract_text_from_pdf(path)
         if not text or len(text) < 50:
