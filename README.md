@@ -8,7 +8,7 @@ Core Functions:
 
 Candidate Portal: Users log in, view required documents (AHPRA, Police Checks), and track progress.
 
-Smart Uploads: Drag-and-drop interface with auto-categorization of documents.
+Smart Uploads: Drag-and-drop interface with auto-categorization of documents (Supports both PDFs and Images like PNG, JPEG, WEBP).
 
 Backend Automation: Automatically creates structured folders in Google Drive, logs entries in Google Sheets, and notifies managers via Gmail.
 
