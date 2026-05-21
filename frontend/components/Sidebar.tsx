@@ -230,7 +230,7 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
                                   {/* Top Row: Icon & File Details */}
                                   <div className="flex items-start gap-4 pr-6 relative">
                                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-xs shadow-md relative ${file.status === 'FAKE' ? 'bg-red-100 text-red-600' : 'bg-white text-teal-600'}`}>
-                                          PDF
+                                          {/\.(png|jpe?g|webp|bmp|tiff?)$/i.test(file.filename || '') ? 'IMG' : 'PDF'}
                                           {file.status === 'FAKE' && (
                                               <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg" title="Fraud Detected">
                                                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
