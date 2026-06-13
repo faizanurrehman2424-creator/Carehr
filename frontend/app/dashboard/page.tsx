@@ -530,7 +530,7 @@ export default function DashboardPage() {
                 <div className="flex flex-col lg:flex-row gap-6 md:gap-8 max-w-7xl mx-auto pb-12">
                     
                     {/* Candidate List (Left Panel) */}
-                    <div className={`flex-1 ${selectedCandidateId ? 'hidden lg:block' : 'block'}`}>
+                    <div className={`w-full lg:w-1/3 xl:w-[400px] flex-shrink-0 ${selectedCandidateId ? 'hidden lg:block' : 'block'}`}>
                         <CandidateList 
                            candidates={filteredCandidates as any} 
                            selectedCandidateId={selectedCandidateId} 
@@ -540,7 +540,7 @@ export default function DashboardPage() {
 
                     {/* Candidate Detail / Checklist (Right Panel) */}
                     {selectedCandidateId && activeCandidate ? (
-                        <div className="flex-[2]">
+                        <div className="flex-1 min-w-0">
                             <CandidateChecklist 
                                activeCandidate={activeCandidate} 
                                loadingDocs={loadingDocs} 
@@ -550,7 +550,7 @@ export default function DashboardPage() {
                             />
                         </div>
                     ) : (
-                        <div className="flex-[2] hidden lg:flex flex-col items-center justify-center bg-white/50 dark:bg-slate-900/50 rounded-3xl border border-slate-200 border-dashed dark:border-slate-800 shadow-sm p-12 text-center relative overflow-hidden h-[600px]">
+                        <div className="flex-1 min-w-0 hidden lg:flex flex-col items-center justify-center bg-white/50 dark:bg-slate-900/50 rounded-3xl border border-slate-200 border-dashed dark:border-slate-800 shadow-sm p-12 text-center relative overflow-hidden h-[600px]">
                             <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02]">
                                 <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                                     <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
