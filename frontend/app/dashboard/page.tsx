@@ -205,7 +205,14 @@ export default function DashboardPage() {
     finally { setLoadingDocs(false); }
   }
 
+  useEffect(() => {
+    if (localStorage.getItem("admin_authenticated") === "true") {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
   const handleLoginSuccess = React.useCallback(() => {
+    localStorage.setItem("admin_authenticated", "true");
     setIsAuthenticated(true);
   }, []);
 

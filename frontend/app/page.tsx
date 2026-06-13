@@ -131,8 +131,13 @@ export default function Page() {
     }
   };
 
-  const handleProfileLogin = async (isSilent = false) => {
-    if(!role || !firstName || !lastName || !email) {
+  const handleProfileLogin = async (isSilent = false, overrideEmail?: string, overrideRole?: string, overrideFirst?: string, overrideLast?: string) => {
+    const e = overrideEmail || email;
+    const r = overrideRole || role;
+    const f = overrideFirst || firstName;
+    const l = overrideLast || lastName;
+
+    if(!r || !f || !l || !e) {
         if(!isSilent) alert("Please fill all fields");
         return;
     }
@@ -146,7 +151,7 @@ export default function Page() {
     }
 
     try {
-        const res = await api.get(`/candidates/lookup?email=${email}`);
+        const res = await api.get(`/candidates/lookup?email=${e}`);
         if (res.data.found) {
             const existingFiles: UploadedFile[] = res.data.documents.map((d: any) => ({
                 file: { name: d.filename } as File,
@@ -160,20 +165,41 @@ export default function Page() {
             setUploadedFiles(existingFiles);
         } else {
             await api.post('/candidates', {
-                first_name: firstName,
-                last_name: lastName,
-                email: email,
-                role: role
+                first_name: f,
+                last_name: l,
+                email: e,
+                role: r
             });
         }
-        if(!isSilent) setCurrentView('chat');
-    } catch (e) { 
-        console.error(e);
+        
+        localStorage.setItem("user_email", e);
+        localStorage.setItem("user_role", r);
+        localStorage.setItem("user_first", f);
+        localStorage.setItem("user_last", l);
+        
+        setCurrentView('chat');
+    } catch (err) { 
+        console.error(err);
         if(!isSilent) alert("Failed to connect to the database.");
     } finally {
         if (!isSilent) setIsLoggingIn(false);
     }
   };
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("user_email");
+    const savedRole = localStorage.getItem("user_role");
+    const savedFirst = localStorage.getItem("user_first");
+    const savedLast = localStorage.getItem("user_last");
+    
+    if (savedEmail && savedRole && savedFirst && savedLast) {
+      setEmail(savedEmail);
+      setRole(savedRole);
+      setFirstName(savedFirst);
+      setLastName(savedLast);
+      handleProfileLogin(true, savedEmail, savedRole, savedFirst, savedLast);
+    }
+  }, []);
 
   const handleFilesSelected = async (files: File[]) => {
     setIsDragging(false); 
