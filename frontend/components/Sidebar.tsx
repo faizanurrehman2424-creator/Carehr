@@ -301,10 +301,12 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
                                       )}
                                   </div>
 
-                                      <div className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border font-black text-[10px] uppercase tracking-wider shadow-sm ${verificationBadge.color}`}>
-                                          <span className="opacity-80 scale-110">{verificationBadge.icon}</span>
-                                          <span className={verificationBadge.textColor}>{verificationBadge.label}</span>
-                                      </div>
+                                      {verificationBadge && (
+                                          <div className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border font-black text-[10px] uppercase tracking-wider shadow-sm ${verificationBadge.color}`}>
+                                              <span className="opacity-80 scale-110">{verificationBadge.icon}</span>
+                                              <span className={verificationBadge.textColor}>{verificationBadge.label}</span>
+                                          </div>
+                                      )}
                               </div>
                               );
                           })
@@ -328,16 +330,7 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
             </button>
         </div>
       </div>
-
-      <style jsx>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
+      </aside>
     </>
   );
 }
