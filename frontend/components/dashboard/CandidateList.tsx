@@ -24,7 +24,7 @@ export const CandidateList: React.FC<CandidateListProps> = React.memo(({
   onSelectCandidate
 }) => {
   return (
-    <div className={`flex-1 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col max-h-[800px] ${selectedCandidateId ? 'hidden lg:flex lg:w-1/3 lg:flex-none' : 'w-full'}`}>
+    <div className="w-full bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col max-h-[800px]">
       <div className="p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center">
         <span className="font-bold text-sm text-slate-500 uppercase tracking-wider">Directory</span>
         <span className="text-xs font-bold bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded-md">{candidates.length} Users</span>
