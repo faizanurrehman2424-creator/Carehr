@@ -39,7 +39,7 @@ Updates a Google Sheet (CareHr Live Data).
 
 Sends an email alert to the Manager.
 
-Saves metadata to a local SQLite database (for UI persistence).
+Saves metadata to a database (local SQLite for development, Supabase PostgreSQL for production persistence).
 
 3. Project Structure (File Map)
 Here is where everything lives. Use this map to orient new developers.
@@ -138,13 +138,18 @@ Subfolders: Identity, Compliance, Checks, Certifications, Registrations, CV.
 Frontend (.env.local):
 
 Bash
-NEXT_PUBLIC_API_URL=https://carehr-backend.onrender.com
-Backend (Render Environment Variables):
+NEXT_PUBLIC_API_URL=https://your-hetzner-vps-api-domain.com
+
+Backend (.env file on Hetzner VPS):
 
 Bash
-# Google Credentials (Copy paste content of JSON files into Render "Secret Files")
-service_account.json
-token.json
+# Database Settings
+DATABASE_URL=postgresql://postgres.iemjrkdxvgxwdocnbdbf:your_password@aws-0-[region].pooler.supabase.com:6543/postgres
+
+# Google Credentials
+# Placed directly inside the backend/ folder on the VPS:
+# - service_account.json
+# - token.json
 
 # Email Settings
 SMTP_HOST=smtp.gmail.com
@@ -161,9 +166,11 @@ Drive Permissions: The Service Account (Robot) must be an Editor of the "CareHR 
 8. Deployment Checklist
 Before going live:
 
-[ ] Frontend: Ensure NEXT_PUBLIC_API_URL points to the live Render backend, not localhost.
+[ ] Frontend: Ensure NEXT_PUBLIC_API_URL points to the Hetzner VPS backend domain, not localhost.
 
-[ ] Backend: Ensure service_account.json is added to Render Secret Files.
+[ ] Backend: Ensure .env file on Hetzner VPS contains the correct DATABASE_URL (Supabase connection pooler) and Azure/SMTP credentials.
+
+[ ] Backend: Verify that service_account.json and token.json are in the backend/ folder on the VPS.
 
 [ ] Google: Check that the Google Drive folder is shared with the Service Account email.
 
