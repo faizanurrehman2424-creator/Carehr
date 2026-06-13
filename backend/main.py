@@ -30,6 +30,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./trendcraft.db")
+# SQLAlchemy 1.4+ deprecated the use of postgres:// and requires postgresql://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 UPLOAD_TEMP_DIR = "temp/"
 os.makedirs(UPLOAD_TEMP_DIR, exist_ok=True)
 
