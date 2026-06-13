@@ -5,6 +5,10 @@ import api from "@/lib/api";
 import ThemeToggle from "@/components/themetoggle";
 import Link from "next/link"; 
 import { getChecklistForRole, DOCTOR_CHECKLIST, NURSE_CHECKLIST, CHECKLIST_GROUPS } from "@/lib/categories";
+import { AdminLogin } from "@/components/dashboard/AdminLogin";
+import { StatsCards } from "@/components/dashboard/StatsCards";
+import { CandidateList } from "@/components/dashboard/CandidateList";
+import { CandidateChecklist } from "@/components/dashboard/CandidateChecklist";
 
 // --- Types ---
 type Candidate = {
@@ -197,10 +201,9 @@ export default function DashboardPage() {
     finally { setLoadingDocs(false); }
   }
 
-  function handleLogin() {
-    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || password === "admin123") setIsAuthenticated(true);
-    else alert("Invalid password");
-  }
+  const handleLoginSuccess = React.useCallback(() => {
+    setIsAuthenticated(true);
+  }, []);
 
   // --- EXPORT LOGIC ---
   async function exportJSON() {
@@ -374,26 +377,7 @@ export default function DashboardPage() {
 
   // --- Render Login ---
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 p-4">
-        <div className="absolute top-8 right-8 z-50 flex gap-4 items-center">
-            <Link href="/" className="text-sm font-semibold text-gray-500 hover:text-teal-600 transition-colors">Go to App</Link>
-            <ThemeToggle />
-        </div>
-        <div className="w-full max-w-sm bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 text-center relative z-10">
-            <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl mx-auto mb-6 flex items-center justify-center text-white shadow-lg rotate-3">
-                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-            </div>
-            <h2 className="text-2xl font-extrabold mb-2 text-gray-900 dark:text-white">Admin Access</h2>
-            <p className="text-sm text-gray-500 mb-8">Secure dashboard for CareHR</p>
-            <input type="password" placeholder="Enter Password" className="w-full p-4 mb-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-teal-500 transition-all font-mono tracking-widest text-center" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-            <button onClick={handleLogin} className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-4 rounded-xl font-bold hover:opacity-90 transition-opacity shadow-md">Unlock Dashboard</button>
-        </div>
-        <div className="absolute inset-0 opacity-10 dark:opacity-5 pointer-events-none z-0">
-             <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0 100 C 30 50 70 50 100 100 Z" fill="currentColor" /></svg>
-        </div>
-      </div>
-    );
+    return <AdminLogin onSuccess={handleLoginSuccess} />;
   }
 
   // --- Render Dashboard ---
@@ -514,198 +498,41 @@ export default function DashboardPage() {
             {/* Scrollable Workspace */}
             <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-7xl mx-auto">
-                     <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                         <div className="flex justify-between items-center mb-4">
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Tracking</span>
-                            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg></div>
-                         </div>
-                         <div className="text-5xl font-black text-gray-900 dark:text-white">{stats.total}</div>
-                     </div>
-                     <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-900/20 dark:to-orange-900/5 p-6 rounded-2xl border border-orange-200 dark:border-orange-800/30 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                         <div className="flex justify-between items-center mb-4">
-                            <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest">Action Required</span>
-                            <div className="w-8 h-8 rounded-full bg-orange-200/50 dark:bg-orange-800/50 flex items-center justify-center text-orange-600 dark:text-orange-400"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div>
-                         </div>
-                         <div className="text-5xl font-black text-orange-700 dark:text-orange-400">{stats.remaining}</div>
-                     </div>
-                     <div className="bg-gradient-to-br from-teal-50 to-teal-100/50 dark:from-teal-900/20 dark:to-teal-900/5 p-6 rounded-2xl border border-teal-200 dark:border-teal-800/30 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                         <div className="flex justify-between items-center mb-4">
-                            <span className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest">Fully Compliant</span>
-                            <div className="w-8 h-8 rounded-full bg-teal-200/50 dark:bg-teal-800/50 flex items-center justify-center text-teal-600 dark:text-teal-400"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                         </div>
-                         <div className="text-5xl font-black text-teal-700 dark:text-teal-400">{stats.completed}</div>
-                     </div>
-                </div>
+                <StatsCards stats={stats} />
 
                 <div className="flex gap-8 max-w-7xl mx-auto pb-12">
                     
                     {/* Candidate List (Left Panel) */}
-                    <div className={`flex-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden flex flex-col max-h-[800px] ${selectedCandidateId ? 'hidden lg:flex lg:w-1/3 lg:flex-none' : 'w-full'}`}>
-                         <div className="p-5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 flex justify-between items-center">
-                             <span className="font-bold text-sm text-gray-500 uppercase tracking-wider">Directory</span>
-                             <span className="text-xs font-bold bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-md">{filteredCandidates.length} Users</span>
-                         </div>
-                         <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
-                             {filteredCandidates.length === 0 ? (
-                                 <div className="h-full flex flex-col items-center justify-center text-gray-400 p-8 text-center">
-                                    <svg className="w-12 h-12 mb-3 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
-                                    <p className="text-sm font-medium">No candidates found in this category.</p>
-                                 </div>
-                             ) : (
-                                 filteredCandidates.map(c => (
-                                     <div 
-                                        key={c.id} 
-                                        onClick={() => selectCandidate(c)}
-                                        className={`p-4 rounded-xl cursor-pointer border-2 transition-all ${
-                                            selectedCandidateId === c.id 
-                                            ? 'bg-white border-teal-500 dark:bg-gray-800 dark:border-teal-500 shadow-md transform scale-[1.02]' 
-                                            : 'bg-white dark:bg-gray-900 border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
-                                        }`}
-                                     >
-                                         <div className="flex justify-between items-start">
-                                            <div className="flex gap-3 items-center">
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${c.completed ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
-                                                    {c.first_name[0]}{c.last_name[0]}
-                                                </div>
-                                                <div>
-                                                    <div className="font-bold text-gray-900 dark:text-white leading-tight">{c.first_name} {c.last_name}</div>
-                                                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5 truncate max-w-[150px]">{c.email || "No Email"}</div>
-                                                </div>
-                                            </div>
-                                            {c.completed ? (
-                                                <div className="bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 p-1.5 rounded-full"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg></div>
-                                            ) : (
-                                                <div className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded-md text-[10px] font-bold tracking-widest">{c.missingCount} MISSING</div>
-                                            )}
-                                         </div>
-                                     </div>
-                                 ))
-                             )}
-                         </div>
-                    </div>
+                    <CandidateList 
+                       candidates={filteredCandidates as any} 
+                       selectedCandidateId={selectedCandidateId} 
+                       onSelectCandidate={selectCandidate as any} 
+                    />
 
                     {/* Candidate Detail / Checklist (Right Panel) */}
                     {selectedCandidateId && activeCandidate ? (
-                        <div className="flex-[2] bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden flex flex-col animate-in slide-in-from-right-4 duration-300">
-                             
-                             <div className="p-8 border-b border-gray-100 dark:border-gray-800 flex justify-between items-start bg-gray-50 dark:bg-gray-800/50">
-                                 <div>
-                                     <div className="flex items-center gap-3 mb-2">
-                                         <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">{activeCandidate.first_name} {activeCandidate.last_name}</h2>
-                                         <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${activeCandidate.completed ? 'bg-teal-100 text-teal-700 border-teal-200' : 'bg-orange-100 text-orange-700 border-orange-200'}`}>
-                                             {activeCandidate.completed ? "100% Compliant" : `${activeCandidate.missingCount} Action Required`}
-                                         </span>
-                                     </div>
-                                     <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                                         <span className="bg-white dark:bg-gray-800 px-2 py-1 rounded border dark:border-gray-700">{activeCandidate.role || "Role Unassigned"}</span> 
-                                         <span className="opacity-50">•</span> 
-                                         <span>{activeCandidate.email}</span>
-                                     </p>
-                                 </div>
-                                 <button onClick={() => setSelectedCandidateId(null)} className="lg:hidden p-2 bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
-                                     <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                                 </button>
-                             </div>
-
-                             <div className="flex-1 overflow-y-auto p-8 bg-gray-50/30 dark:bg-gray-900/30 custom-scrollbar">
-                                 <div className="flex justify-between items-end mb-6">
-                                     <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Compliance Audit</h3>
-                                     <div className="text-xs font-semibold text-gray-500">
-                                         {activeCandidate.totalRequired - activeCandidate.missingCount} of {activeCandidate.totalRequired} verified
-                                     </div>
-                                 </div>
-                                 
-                                 {loadingDocs ? (
-                                     <div className="h-48 flex flex-col items-center justify-center text-teal-600 gap-3">
-                                         <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
-                                         <span className="text-sm font-bold animate-pulse">Syncing Google Drive...</span>
-                                     </div>
-                                 ) : (
-                                     <div className="space-y-8">
-                                         {/* DYNAMIC CHECKLIST RENDERING BY GROUP */}
-                                         {activeChecklist.map(group => (
-                                             <div key={group.id} className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
-                                                 <h4 className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-widest mb-4 border-b border-gray-100 dark:border-gray-800 pb-2">
-                                                     {group.label}
-                                                 </h4>
-                                                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                                                     {group.items.map(item => {
-                                                         const docMatch = selectedCandidateDocs.find(d => matchesCategory(d, item.id) && d.status !== 'FAKE');
-                                                         const isPresent = !!docMatch;
-                                                         const ahpraBadge = isPresent ? getVerificationBadge(docMatch.status) : null;
-                                                         
-                                                         return (
-                                                             <div key={item.id} className={`flex flex-col justify-between p-4 rounded-xl border transition-all relative overflow-hidden backdrop-blur-sm ${ahpraBadge ? `${ahpraBadge.bgColor} ${ahpraBadge.borderColor}` : isPresent ? 'bg-white/40 dark:bg-gray-800/40 border-gray-200/60 dark:border-gray-700/60 hover:border-teal-300 dark:hover:border-teal-700' : 'bg-red-50/20 dark:bg-red-900/10 border-red-100/50 dark:border-red-900/30 border-dashed'}`}>
-                                                                 <div className="flex items-start gap-4 mb-4">
-                                                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${ahpraBadge ? `${ahpraBadge.bgColor} ${ahpraBadge.textColor} shadow-sm border ${ahpraBadge.borderColor}` : isPresent ? 'bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400' : 'bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400'}`}>
-                                                                         {ahpraBadge ? ahpraBadge.icon : isPresent ? (
-                                                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                                                                         ) : (
-                                                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-                                                                         )}
-                                                                     </div>
-                                                                     <div className="flex-1 min-w-0">
-                                                                         <div className={`text-sm font-bold truncate ${ahpraBadge ? ahpraBadge.textColor : isPresent ? 'text-gray-900 dark:text-gray-100' : 'text-red-700 dark:text-red-400'}`}>
-                                                                             {item.label}
-                                                                         </div>
-                                                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                                                                            {ahpraBadge ? ahpraBadge.label : isPresent ? 'Verified & Stored' : 'Awaiting Upload'}
-                                                                         </div>
-                                                                     </div>
-                                                                 </div>
-                                                                 
-                                                                 {ahpraBadge && docMatch?.extracted?.registration_type && (
-                                                                     <div className={`text-[10px] mb-3 px-2 py-1.5 rounded-md mix-blend-multiply dark:mix-blend-lighten opacity-80 ${ahpraBadge.bgColor}`}>
-                                                                         <div className="flex justify-between items-center whitespace-nowrap overflow-hidden">
-                                                                             <span className="font-semibold truncate mr-2">{docMatch.extracted.registration_type}</span>
-                                                                             {docMatch.extracted.expiry_date && <span>Exp: {docMatch.extracted.expiry_date}</span>}
-                                                                         </div>
-                                                                     </div>
-                                                                 )}
-                                                                 
-                                                                 <div className="mt-auto relative z-10">
-                                                                     {isPresent && docMatch?.view_link ? (
-                                                                         <a 
-                                                                            href={typeof docMatch.view_link === 'string' ? docMatch.view_link : docMatch.view_link.webViewLink} 
-                                                                            target="_blank" 
-                                                                            rel="noopener noreferrer"
-                                                                            className={`block w-full text-center text-xs font-bold py-2 rounded-lg transition-colors border ${ahpraBadge ? `bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 ${ahpraBadge.textColor} ${ahpraBadge.borderColor}` : 'text-teal-700 bg-white hover:bg-teal-50 dark:text-teal-300 dark:bg-gray-800 dark:hover:bg-teal-900/30 border-gray-200 dark:border-gray-700'}`}
-                                                                         >
-                                                                             OPEN DOCUMENT
-                                                                         </a>
-                                                                     ) : !isPresent ? (
-                                                                         <div className="w-full text-center text-xs font-bold text-red-400 bg-red-50/50 dark:bg-red-900/10 py-2 rounded-lg border border-red-100 dark:border-red-900/20">
-                                                                             MISSING
-                                                                         </div>
-                                                                     ) : (
-                                                                         <div className="w-full text-center text-xs font-bold text-gray-400 bg-gray-50 dark:bg-gray-800 py-2 rounded-lg border border-gray-200 dark:border-gray-700">
-                                                                             PROCESSING LINK...
-                                                                         </div>
-                                                                     )}
-                                                                 </div>
-                                                                 
-                                                                 {ahpraBadge && (
-                                                                     <div className={`absolute bottom-0 left-0 w-full h-1 ${ahpraBadge.color}`} />
-                                                                 )}
-                                                             </div>
-                                                         );
-                                                     })}
-                                                 </div>
-                                             </div>
-                                         ))}
-                                     </div>
-                                 )}
-                             </div>
-                        </div>
+                        <CandidateChecklist 
+                           activeCandidate={activeCandidate} 
+                           loadingDocs={loadingDocs} 
+                           activeChecklist={activeChecklist} 
+                           selectedCandidateDocs={selectedCandidateDocs} 
+                           onClose={() => setSelectedCandidateId(null)} 
+                        />
                     ) : (
-                        <div className="hidden lg:flex flex-[2] bg-gray-50 dark:bg-gray-900/50 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800 items-center justify-center text-gray-400 flex-col gap-3">
-                             <div className="w-16 h-16 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm mb-2">
-                                <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>
-                             </div>
-                             <span className="font-bold text-gray-500">Select a candidate</span>
-                             <span className="text-sm">Click a profile on the left to view their detailed audit.</span>
+                        <div className="flex-[2] hidden lg:flex flex-col items-center justify-center bg-white/50 dark:bg-gray-900/50 rounded-2xl border border-gray-200 border-dashed dark:border-gray-800 shadow-sm p-12 text-center relative overflow-hidden">
+                            <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02]">
+                                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                    <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                                        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="0.5" />
+                                    </pattern>
+                                    <rect width="100" height="100" fill="url(#grid)" />
+                                </svg>
+                            </div>
+                            <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-gray-400 mb-6 relative z-10 shadow-sm border border-white dark:border-gray-700">
+                                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 relative z-10">Select a Candidate</h3>
+                            <p className="text-sm text-gray-500 max-w-xs relative z-10">Choose a candidate from the directory to view their complete compliance audit and documents.</p>
                         </div>
                     )}
                 </div>
