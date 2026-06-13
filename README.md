@@ -193,13 +193,14 @@ cd frontend
 npm install
 npm run dev
 
-9. Recent Updates (May 2025 Sprint)
-This sprint focused on getting the platform sales-ready for paid pilots.
+9. Recent Updates (June 2026 Sprint)
+This sprint focused on hardening the infrastructure, refining the UI/UX, and preparing for a reliable production deployment.
 
 Completed Items:
-[x] AHPRA Verification: Live scraping of the AHPRA public register with positive (Verified), negative (Not Found), and name mismatch detection.
-[x] AI Fraud Detection: Azure OpenAI-powered document classification flags mismatched uploads (e.g., a CV uploaded as a Police Check).
-[x] Role-Specific Checklists: Doctor (38 items), Nurse (35 items), and Generic (7 items) checklists with distinct groups and requirements.
-[x] PDF + Image Upload: Frontend accepts PDF, PNG, JPEG, and WebP. Backend routes images directly to OCR.
-[x] Admin Dashboard: Password-protected dashboard at /dashboard with candidate list, compliance audit, and multi-format export (CSV, JSON, Salesforce).
-[x] Privacy Policy & Terms of Service: Full-content modal dialogs accessible from the login page with professional legal placeholder text (Australian Privacy Act aligned).
+[x] Premium UI/UX Redesign: Complete frontend aesthetic upgrade to a "Healthcare Blue" theme. Softened borders, added subtle shadows, and implemented smooth micro-interactions to avoid the "AI slop" look.
+[x] 100% Mobile Responsiveness: The dashboard now flawlessly adapts to small screens. The sidebar transforms into a sliding hamburger overlay, and complex grids (e.g., Stats Cards, Checklists) intelligently stack or horizontally scroll.
+[x] Component Modularization: Refactored the monolithic dashboard page into specialized, maintainable components (`AdminLogin.tsx`, `StatsCards.tsx`, `CandidateList.tsx`, `CandidateChecklist.tsx`, `Sidebar.tsx`).
+[x] Production-Ready Build: Resolved all Next.js 16 (Turbopack) compilation errors and module scope issues (e.g., correct `"use client"` placement).
+[x] Cloud Infrastructure: Finalized deployment strategy on Hetzner VPS using Docker Compose for seamless container orchestration.
+[x] Supabase Database Integration: Switched production persistence to a managed Supabase PostgreSQL instance for scalability and reliability.
+[x] AHPRA Verification & Fraud Detection: Live scraping of the AHPRA register via Playwright and AI-powered document classification to flag mismatched uploads.
