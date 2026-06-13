@@ -28,43 +28,43 @@ const getVerificationBadge = (status?: string) => {
   switch (status) {
     case "AHPRA_VERIFIED":
       return {
-        color: "bg-emerald-500",
+        color: "bg-emerald-500/20 border-emerald-500/30",
         icon: (
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
           </svg>
         ),
         label: "AHPRA Verified",
-        textColor: "text-emerald-300",
+        textColor: "text-emerald-400",
       };
     case "AHPRA_NAME_MISMATCH":
       return {
-        color: "bg-orange-500",
+        color: "bg-amber-500/20 border-amber-500/30",
         icon: (
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         ),
         label: "Name Mismatch",
-        textColor: "text-orange-300",
+        textColor: "text-amber-400",
       };
     case "AHPRA_NOT_FOUND":
       return {
-        color: "bg-red-500",
+        color: "bg-rose-500/20 border-rose-500/30",
         icon: (
           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
           </svg>
         ),
         label: "Not Found",
-        textColor: "text-red-300",
+        textColor: "text-rose-400",
       };
     default:
       return null;
   }
 };
 
-export default function Sidebar({ progress, uploadedCategories, role, firstName, lastName, uploadedFiles, onNavigate, onDeleteFile, onVerifyFile, verifyingId }: SidebarProps) {
+export default function Sidebar({ progress, uploadedCategories, role, firstName, lastName, uploadedFiles, onNavigate, onDeleteFile, onVerifyFile, verifyingId, isOpenMobile, setIsOpenMobile }: SidebarProps & { isOpenMobile?: boolean, setIsOpenMobile?: (b: boolean) => void }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<'checklist' | 'vault'>('checklist');
@@ -101,18 +101,32 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
   const currentChecklist = getChecklistForRole(role);
 
   return (
-    <aside className={`${isCollapsed ? 'w-24' : 'w-80'} bg-gradient-to-br from-teal-500 to-cyan-600 dark:from-slate-900 dark:to-cyan-950 flex-shrink-0 h-screen sticky top-0 z-40 transition-all duration-500 shadow-2xl overflow-hidden`}>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpenMobile && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden animate-in fade-in" 
+          onClick={() => setIsOpenMobile?.(false)}
+        />
+      )}
+      <aside className={`fixed lg:sticky top-0 z-50 h-screen transition-all duration-500 shadow-[4px_0_24px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col bg-gradient-to-br from-blue-600 to-sky-700 dark:from-slate-900 dark:to-slate-800 ${isOpenMobile ? 'translate-x-0 w-80' : '-translate-x-full lg:translate-x-0'} ${isCollapsed ? 'lg:w-24' : 'lg:w-80'}`}>
       
       <div className="h-full overflow-y-auto no-scrollbar flex flex-col pt-4">
         
         {/* Toggle Button */}
-        <div className={`px-4 flex items-center ${isCollapsed ? 'justify-center' : 'justify-end'} flex-shrink-0 mb-4`}>
-            <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-2 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors">
+        <div className={`px-4 flex items-center ${isCollapsed ? 'justify-center' : 'justify-end'} flex-shrink-0 mb-4 hidden lg:flex`}>
+            <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-2 rounded-xl bg-white/10 text-white/90 hover:bg-white/20 hover:text-white transition-colors shadow-sm">
                 {isCollapsed ? (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
                 ) : (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
                 )}
+            </button>
+        </div>
+        {/* Mobile Close Button */}
+        <div className="lg:hidden px-4 flex justify-end mb-2">
+            <button onClick={() => setIsOpenMobile?.(false)} className="p-2 rounded-xl bg-white/10 text-white/90 hover:bg-white/20 transition-colors shadow-sm">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
         </div>
 
@@ -180,7 +194,7 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
                                           const isCompleted = uploadedCategories.has(item.id);
                                           return (
                                               <div key={item.id} className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-white/10 transition-all ml-1">
-                                                  <div className={`w-4 h-4 rounded-md flex items-center justify-center border transition-all ${isCompleted ? 'bg-white border-white text-teal-600 scale-110 shadow-lg' : 'border-white/30'}`}>
+                                                  <div className={`w-4 h-4 rounded-md flex items-center justify-center border transition-all ${isCompleted ? 'bg-white border-white text-blue-600 scale-110 shadow-sm' : 'border-white/30'}`}>
                                                       {isCompleted && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" /></svg>}
                                                   </div>
                                                   <span className={`text-[11px] font-bold leading-tight ${isCompleted ? 'text-white/40 line-through' : 'text-white/80'}`}>{item.label}</span>
@@ -229,10 +243,10 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
 
                                   {/* Top Row: Icon & File Details */}
                                   <div className="flex items-start gap-4 pr-6 relative">
-                                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-xs shadow-md relative ${file.status === 'FAKE' ? 'bg-red-100 text-red-600' : 'bg-white text-teal-600'}`}>
+                                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-xs shadow-sm relative ${file.status === 'FAKE' ? 'bg-rose-100 text-rose-600' : 'bg-white text-blue-600'}`}>
                                           {/\.(png|jpe?g|webp|bmp|tiff?)$/i.test(file.filename || '') ? 'IMG' : 'PDF'}
                                           {file.status === 'FAKE' && (
-                                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg" title="Fraud Detected">
+                                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-sm" title="Fraud Detected">
                                                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                               </div>
                                           )}
@@ -249,7 +263,7 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
                                       </div>
                                       <div className="min-w-0 flex-1">
                                           <p className="text-xs font-black text-white truncate drop-shadow-sm" title={file.filename}>{file.filename}</p>
-                                          <p className={`text-[10px] font-bold mt-1 uppercase tracking-widest ${file.status === 'FAKE' ? 'text-red-300' : 'text-teal-100/90'}`}>{file.category.replace("_", " ")}</p>
+                                          <p className={`text-[10px] font-bold mt-1 uppercase tracking-widest ${file.status === 'FAKE' ? 'text-rose-300' : 'text-blue-100/90'}`}>{file.category.replace("_", " ")}</p>
                                       </div>
                                   </div>
 
@@ -269,10 +283,10 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
                                                   if (onVerifyFile) onVerifyFile(file.stableId);
                                               }}
                                               disabled={isVerifying}
-                                              className={`flex-1 text-center font-black text-[10px] py-2.5 rounded-xl uppercase tracking-wider transition-all shadow-md ${
+                                              className={`flex-1 text-center font-black text-[10px] py-2.5 rounded-xl uppercase tracking-wider transition-all shadow-sm ${
                                                   isVerifying
-                                                      ? 'bg-teal-600/50 text-white/70 cursor-wait'
-                                                      : 'bg-teal-600 text-white hover:bg-teal-700 hover:shadow-lg transform hover:-translate-y-0.5'
+                                                      ? 'bg-blue-600/50 text-white/70 cursor-wait'
+                                                      : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transform hover:-translate-y-0.5'
                                               }`}
                                           >
                                               {isVerifying ? (
@@ -287,17 +301,10 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
                                       )}
                                   </div>
 
-                                  {/* Bottom Row / Full-width Status Strip: AHPRA Verified Status */}
-                                  {isAhpraVerified && verificationBadge && (
-                                      <div className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border font-black text-[10px] uppercase tracking-wider shadow-inner ${
-                                          file.status === 'AHPRA_VERIFIED' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
-                                          file.status === 'AHPRA_NAME_MISMATCH' ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' :
-                                          'bg-red-500/20 text-red-300 border-red-500/30'
-                                      }`}>
+                                      <div className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border font-black text-[10px] uppercase tracking-wider shadow-sm ${verificationBadge.color}`}>
                                           <span className="opacity-80 scale-110">{verificationBadge.icon}</span>
-                                          <span>{verificationBadge.label}</span>
+                                          <span className={verificationBadge.textColor}>{verificationBadge.label}</span>
                                       </div>
-                                  )}
                               </div>
                               );
                           })
@@ -331,6 +338,6 @@ export default function Sidebar({ progress, uploadedCategories, role, firstName,
           scrollbar-width: none;
         }
       `}</style>
-    </aside>
+    </>
   );
 }

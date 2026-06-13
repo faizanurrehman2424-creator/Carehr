@@ -60,6 +60,7 @@ export default function Page() {
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [isSidebarOpenMobile, setIsSidebarOpenMobile] = useState(false);
 
   // Memoize handlers to prevent unnecessary re-renders of modals
   const closePrivacyModal = React.useCallback(() => setShowPrivacyModal(false), []);
@@ -294,9 +295,9 @@ export default function Page() {
 
   if (currentView === "profile") {
     return (
-      <div className="min-h-screen flex bg-white dark:bg-gray-950 font-sans transition-colors duration-500">
+      <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 font-sans transition-colors duration-500">
         
-        <div className="hidden lg:flex w-1/2 relative items-center justify-center p-12 overflow-hidden bg-gradient-to-br from-teal-500 to-cyan-600 dark:from-slate-900 dark:to-cyan-950 transition-all duration-500">
+        <div className="hidden lg:flex w-1/2 relative items-center justify-center p-12 overflow-hidden bg-gradient-to-br from-blue-600 to-sky-700 dark:from-slate-900 dark:to-slate-800 transition-all duration-500 shadow-inner">
           <div className="absolute inset-0 opacity-20 dark:opacity-10 pointer-events-none">
              <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                  <path d="M0 100 C 30 50 70 50 100 100 Z" fill="white" />
@@ -320,14 +321,14 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 sm:p-12 lg:p-24 bg-gray-50 dark:bg-gray-950 relative transition-colors duration-500">
+        <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 sm:p-12 lg:p-24 bg-white dark:bg-slate-950 relative transition-colors duration-500 shadow-2xl z-10 rounded-l-3xl">
           
           <div className="absolute top-8 right-8 z-50 flex items-center gap-4">
             {/* NEW: Feedback Form Link */}
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLSegC8PbeLYDTywFMw7yfuS7ybYugQjNf7lfAfzWwtbgHEC9Rw/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-teal-600 hover:text-teal-700 dark:text-teal-400 transition-colors">
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSegC8PbeLYDTywFMw7yfuS7ybYugQjNf7lfAfzWwtbgHEC9Rw/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 transition-colors">
               Feedback
             </a>
-            <Link href="/dashboard" className="text-sm font-semibold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">Admin Login</Link>
+            <Link href="/dashboard" className="text-sm font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">Admin Login</Link>
             <ThemeToggle />
           </div>
 
@@ -368,16 +369,16 @@ export default function Page() {
                     id="terms"
                     type="checkbox"
                     required
-                    className="w-5 h-5 rounded-md border-gray-300 dark:border-gray-700 text-teal-600 focus:ring-teal-500 cursor-pointer transition-all"
+                    className="w-5 h-5 rounded-md border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer transition-all"
                   />
                 </div>
-                <div className="text-xs leading-normal text-gray-500 dark:text-gray-400">
+                <div className="text-xs leading-normal text-slate-500 dark:text-slate-400">
                   I agree to the{" "}
-                  <button type="button" onClick={() => setShowPrivacyModal(true)} className="underline font-bold text-gray-700 dark:text-gray-200 hover:text-teal-600 transition-colors">
+                  <button type="button" onClick={() => setShowPrivacyModal(true)} className="underline font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 transition-colors">
                     Privacy Policy
                   </button>{" "}
                   and{" "}
-                  <button type="button" onClick={() => setShowTermsModal(true)} className="underline font-bold text-gray-700 dark:text-gray-200 hover:text-teal-600 transition-colors">
+                  <button type="button" onClick={() => setShowTermsModal(true)} className="underline font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 transition-colors">
                     Terms of Service
                   </button>
                 </div>
@@ -414,7 +415,7 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300 flex overflow-hidden relative">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300 flex overflow-hidden relative">
       
       <Sidebar 
          progress={progressPercentage} 
@@ -427,18 +428,26 @@ export default function Page() {
          onDeleteFile={handleDeleteFile}
          onVerifyFile={handleVerifyFile}
          verifyingId={verifyingId}
+         isOpenMobile={isSidebarOpenMobile}
+         setIsOpenMobile={setIsSidebarOpenMobile}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 h-screen relative bg-gray-50/50 dark:bg-gray-950">
+      <div className="flex-1 flex flex-col min-w-0 h-screen relative bg-slate-50 dark:bg-slate-950">
         
-        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50 h-20 px-8 flex justify-between items-center flex-shrink-0 shadow-sm">
+        <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 h-20 px-4 sm:px-8 flex justify-between items-center flex-shrink-0 shadow-sm">
           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white shadow-sm">
+             <button 
+                onClick={() => setIsSidebarOpenMobile(true)}
+                className="lg:hidden p-2 -ml-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+             >
+                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+             </button>
+             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-sky-600 flex items-center justify-center text-white shadow-sm hidden sm:flex">
                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
              </div>
              <div>
-                <h1 className="text-lg font-extrabold text-gray-900 dark:text-white tracking-tight leading-none">CareHR Assistant</h1>
-                <span className="text-[10px] font-bold text-teal-600 uppercase tracking-widest">Active Workspace</span>
+                <h1 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">CareHR Assistant</h1>
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest hidden sm:block">Active Workspace</span>
              </div>
           </div>
           
@@ -448,7 +457,7 @@ export default function Page() {
                href="https://docs.google.com/forms/d/e/1FAIpQLSegC8PbeLYDTywFMw7yfuS7ybYugQjNf7lfAfzWwtbgHEC9Rw/viewform?usp=publish-editor" 
                target="_blank" 
                rel="noopener noreferrer" 
-               className="text-[11px] font-bold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors uppercase tracking-wider hidden sm:block border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-900/30 px-3 py-1.5 rounded-lg shadow-sm"
+               className="text-[11px] font-bold text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors uppercase tracking-wider hidden sm:block border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-lg shadow-sm"
             >
                Share Feedback
             </a>
@@ -474,8 +483,8 @@ export default function Page() {
                                 notifications.map(n => (
                                     <div key={n.id} className="p-3 mb-1 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex gap-3">
                                         <div className="mt-0.5 flex-shrink-0">
-                                            {n.type === 'error' && <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                            {n.type === 'success' && <svg className="w-5 h-5 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                                            {n.type === 'error' && <svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                                            {n.type === 'success' && <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                                             {n.type === 'info' && <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                                         </div>
                                         <div>
@@ -517,10 +526,10 @@ export default function Page() {
                     {messages.map((m, i) => (
                         <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                             <div className={`flex gap-3 max-w-[85%] sm:max-w-[75%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border ${m.role === 'ai' ? 'bg-teal-50 border-teal-100 text-teal-600 dark:bg-teal-900/30 dark:border-teal-800' : 'bg-gray-900 border-gray-900 text-white dark:bg-white dark:border-white dark:text-gray-900'}`}>
+                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border ${m.role === 'ai' ? 'bg-blue-50 border-blue-100 text-blue-600 dark:bg-blue-900/30 dark:border-blue-800' : 'bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900'}`}>
                                     {m.role === 'ai' ? <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> : <span className="text-xs font-bold uppercase">{firstName[0] || "U"}</span>}
                                 </div>
-                                <div className={`p-4 rounded-2xl shadow-sm whitespace-pre-wrap text-[15px] leading-relaxed ${m.role === 'user' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 rounded-tr-none border-transparent' : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-tl-none text-gray-800 dark:text-gray-200'}`}>
+                                <div className={`p-4 rounded-2xl shadow-sm whitespace-pre-wrap text-[15px] leading-relaxed ${m.role === 'user' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-tr-none border-transparent' : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-tl-none text-slate-800 dark:text-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}`}>
                                     {m.text}
                                 </div>
                             </div>
@@ -529,11 +538,11 @@ export default function Page() {
                     {isTyping && (
                         <div className="flex justify-start">
                             <div className="flex gap-3 flex-row">
-                                <div className="w-10 h-10 rounded-full bg-teal-50 border border-teal-100 dark:bg-teal-900/30 dark:border-teal-800 flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 dark:bg-blue-900/30 dark:border-blue-800 flex items-center justify-center flex-shrink-0 shadow-sm">
                                      <div className="flex gap-1">
-                                        <div className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce"></div>
-                                        <div className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                                        <div className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div>
+                                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                                      </div>
                                 </div>
                             </div>
@@ -543,14 +552,14 @@ export default function Page() {
                 </div>
             </div>
             
-            <div className="p-6 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] z-10">
-              <div className="max-w-4xl mx-auto flex gap-2 p-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-inner relative items-center">
+            <div className="p-4 sm:p-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_30px_rgba(0,0,0,0.03)] z-10">
+              <div className="max-w-4xl mx-auto flex gap-2 p-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-inner relative items-center focus-within:ring-2 focus-within:ring-blue-500/50 transition-all">
                   
                   <input type="file" accept="application/pdf,image/png,image/jpeg,image/webp" multiple className="hidden" id="chat-file-upload" onChange={(e) => {
                       if(e.target.files) handleFilesSelected(Array.from(e.target.files));
                       e.target.value = '';
                   }} />
-                  <label htmlFor="chat-file-upload" className="p-3 text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer transition-colors flex items-center justify-center rounded-xl hover:bg-white dark:hover:bg-gray-700 shadow-sm" title="Attach Document">
+                  <label htmlFor="chat-file-upload" className="p-3 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors flex items-center justify-center rounded-xl hover:bg-white dark:hover:bg-slate-700 shadow-sm bg-white dark:bg-slate-800" title="Attach Document">
                       <svg className="w-5 h-5 transform rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                   </label>
 
@@ -560,11 +569,11 @@ export default function Page() {
                       onChange={(e) => setChatInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                       placeholder="Ask me anything, or drop a PDF/image here..."
-                      className="flex-1 bg-transparent p-2 outline-none text-gray-900 dark:text-white placeholder-gray-400 text-[15px] font-medium" 
+                      className="flex-1 bg-transparent p-2 outline-none text-slate-900 dark:text-white placeholder-slate-400 text-[15px] font-medium min-w-0" 
                   />
                   
-                  <button onClick={handleSendMessage} disabled={!chatInput.trim()} className="p-3 px-5 bg-gray-900 text-white dark:bg-white dark:text-gray-900 rounded-xl hover:opacity-90 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-bold text-sm">
-                      Send
+                  <button onClick={handleSendMessage} disabled={!chatInput.trim()} className="p-3 sm:px-6 bg-blue-600 text-white dark:bg-blue-500 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-bold text-sm ml-1 flex-shrink-0">
+                      <span className="hidden sm:inline">Send</span>
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                   </button>
               </div>
