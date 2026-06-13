@@ -203,4 +203,6 @@ Completed Items:
 [x] Production-Ready Build: Resolved all Next.js 16 (Turbopack) compilation errors and module scope issues (e.g., correct `"use client"` placement).
 [x] Cloud Infrastructure: Finalized deployment strategy on Hetzner VPS using Docker Compose for seamless container orchestration.
 [x] Supabase Database Integration: Switched production persistence to a managed Supabase PostgreSQL instance for scalability and reliability.
-[x] AHPRA Verification & Fraud Detection: Live scraping of the AHPRA register via Playwright and AI-powered document classification to flag mismatched uploads.
+[x] Backend Architecture Optimization: Switched to FastAPI Dependency Injection (`Depends(db_session)`) preventing DB connection leaks and fixed event-loop blocking issues in `/upload`.
+[x] Backend Security & Reliability: Enforced strict 10MB limits on file uploads to prevent DoS attacks, removed silent exceptions for explicit logging, and fixed background task runtime bugs.
+[x] AHPRA Verification & Fraud Detection: Live scraping of the AHPRA register via Playwright and AI-powered document classification to flag mismatched uploads. Implemented `difflib` for fuzzy name matching, making it resilient to typos and format variations.

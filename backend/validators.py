@@ -96,7 +96,8 @@ def _ocr_image(img: Image.Image, psm: int = 6, oem: int = 3, lang: str = "eng") 
         logger.exception("OCR failed: %s", e)
         try:
             return pytesseract.image_to_string(img)
-        except Exception:
+        except Exception as e2:
+            logger.error("Fallback OCR failed as well: %s", e2)
             return ""
 
 def extract_text_from_pdf(path: str, render_dpi: int = 300) -> str:
@@ -193,8 +194,8 @@ def find_dates_in_text(text: str) -> List[datetime]:
                 dt = dateparser.parse(m, dayfirst=True, yearfirst=False, fuzzy=True)
                 if dt:
                     found.append(dt)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Failed to parse date '{m}': {e}")
     unique = {}
     for d in found:
         unique[d.date().isoformat()] = d

@@ -22,10 +22,11 @@ def _normalize_name(name: str) -> str:
     return " ".join(name.split())  # collapse whitespace
 
 
+import difflib
+
 def _names_match(scraped_name: str, candidate_first: str, candidate_last: str) -> bool:
     """
-    Check if the scraped practitioner name matches the candidate.
-    Flexible matching: checks if both first and last name appear in the scraped name.
+    Check if the scraped practitioner name matches the candidate using fuzzy string matching.
     """
     if not scraped_name or not candidate_last:
         return False
@@ -33,16 +34,25 @@ def _names_match(scraped_name: str, candidate_first: str, candidate_last: str) -
     scraped = _normalize_name(scraped_name)
     first = _normalize_name(candidate_first)
     last = _normalize_name(candidate_last)
+    
+    full_candidate_name = f"{first} {last}".strip()
+    
+    # Exact or substring match is an automatic pass
+    if last in scraped and (not first or first in scraped):
+        return True
+        
+    # Fuzzy match using SequenceMatcher
+    similarity = difflib.SequenceMatcher(None, scraped, full_candidate_name).ratio()
+    
+    # Also check similarity of just the last name against the words in scraped
+    scraped_words = scraped.split()
+    best_last_name_match = max([difflib.SequenceMatcher(None, last, word).ratio() for word in scraped_words] + [0])
+    
+    # If the full name similarity is > 0.8 or the last name is a very close match (> 0.85), accept it.
+    if similarity > 0.80 or best_last_name_match > 0.85:
+        return True
 
-    # Check if last name appears in scraped name (required)
-    if last not in scraped:
-        return False
-
-    # Check if first name appears (if provided)
-    if first and first not in scraped:
-        return False
-
-    return True
+    return False
 
 
 async def verify_ahpra_live(registration_id: str, last_name: str) -> dict:

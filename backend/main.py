@@ -8,17 +8,18 @@ import os
 import uuid
 from datetime import date, datetime
 from typing import Optional, List
-from fastapi import FastAPI, UploadFile, File, Form, BackgroundTasks, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, BackgroundTasks, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse # NEW: Required for streaming chat
 from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, String, Date, JSON, DateTime, text
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from dateutil import parser as dateparser
 import smtplib
 from email.mime.text import MIMEText
 import logging
+import urllib.parse
 
 from validators import extract_text_file, run_validation_for_category
 from google_sheets_utils import extract_ahpra_details, update_ahpra_sheet
@@ -246,34 +247,28 @@ def health():
 
 # --- UPDATED: CHAT ENDPOINT NOW STREAMS ---
 @app.post("/chat")
-async def chat_endpoint(payload: ChatRequest):
-    db = SessionLocal()
-    try:
-        candidate = db.query(Candidate).filter(Candidate.email == payload.email).first()
-        
-        if not candidate:
-            # Fake a stream for the static error message
-            async def mock_stream():
-                yield "Please complete your profile setup so I can help you with your specific compliance needs!"
-            return StreamingResponse(mock_stream(), media_type="text/event-stream")
+async def chat_endpoint(payload: ChatRequest, db: Session = Depends(db_session)):
+    candidate = db.query(Candidate).filter(Candidate.email == payload.email).first()
+    
+    if not candidate:
+        # Fake a stream for the static error message
+        async def mock_stream():
+            yield "Please complete your profile setup so I can help you with your specific compliance needs!"
+        return StreamingResponse(mock_stream(), media_type="text/event-stream")
 
-        docs = db.query(Document).filter(Document.candidate_id == candidate.id).all()
-        doc_list = [{"category": d.category, "status": d.status} for d in docs]
-        cand_data = {"first_name": candidate.first_name, "role": candidate.role}
+    docs = db.query(Document).filter(Document.candidate_id == candidate.id).all()
+    doc_list = [{"category": d.category, "status": d.status} for d in docs]
+    cand_data = {"first_name": candidate.first_name, "role": candidate.role}
 
-        return StreamingResponse(
-            process_chat_message_stream(payload.message, cand_data, doc_list),
-            media_type="text/event-stream"
-        )
-    finally:
-        db.close()
+    return StreamingResponse(
+        process_chat_message_stream(payload.message, cand_data, doc_list),
+        media_type="text/event-stream"
+    )
     
 @app.get("/candidates/lookup")
-def lookup_candidate(email: str):
-    db = next(db_session())
+def lookup_candidate(email: str, db: Session = Depends(db_session)):
     c = db.query(Candidate).filter(Candidate.email == email).first()
     if not c:
-        db.close()
         return {"found": False}
     
     docs = db.query(Document).filter(Document.candidate_id == c.id).all()
@@ -281,7 +276,6 @@ def lookup_candidate(email: str):
         {"id": d.id, "category": d.category, "filename": d.filename, "status": d.status, "drive_view_link": d.drive_view_link} 
         for d in docs
     ]
-    db.close()
     return {
         "found": True,
         "candidate": {"id": c.id, "first_name": c.first_name, "last_name": c.last_name, "role": c.role, "dob": c.dob},
@@ -289,8 +283,7 @@ def lookup_candidate(email: str):
     }
 
 @app.post("/candidates", response_model=CandidateOut)
-def create_candidate(payload: CandidateCreate):
-    db = next(db_session())
+def create_candidate(payload: CandidateCreate, db: Session = Depends(db_session)):
     candidate_id = str(uuid.uuid4())[:36]
     role_clean = (payload.role or "").strip().title() or None
     candidate = Candidate(id=candidate_id, first_name=payload.first_name, last_name=payload.last_name, email=payload.email, phone=payload.phone, dob=payload.dob, role=role_clean)
@@ -302,32 +295,27 @@ def create_candidate(payload: CandidateCreate):
 
     db.add(candidate)
     db.commit()
-    db.close()
     return CandidateOut(id=candidate_id, first_name=payload.first_name, last_name=payload.last_name, email=payload.email, phone=payload.phone, dob=payload.dob, role=role_clean, drive_root_folder_id=candidate.drive_root_folder_id)
 
 @app.get("/candidates", response_model=List[CandidateOut])
-def list_candidates():
-    db = next(db_session())
+def list_candidates(db: Session = Depends(db_session)):
     items = db.query(Candidate).all()
     out = [CandidateOut(id=i.id, first_name=i.first_name, last_name=i.last_name, email=i.email, phone=i.phone, dob=i.dob, role=i.role, drive_root_folder_id=i.drive_root_folder_id) for i in items]
-    db.close()
     return out
 
 @app.get("/candidates/{candidate_id}")
-def get_candidate(candidate_id: str):
-    db = next(db_session())
+def get_candidate(candidate_id: str, db: Session = Depends(db_session)):
     c = db.query(Candidate).filter(Candidate.id == candidate_id).first()
     if not c:
-        db.close()
         raise HTTPException(status_code=404, detail="Candidate not found")
     docs = db.query(Document).filter(Document.candidate_id == candidate_id).all()
     out_docs = [{"id": d.id, "category": d.category, "filename": d.filename, "status": d.status, "expiry_date": d.expiry_date.isoformat() if d.expiry_date else None, "view_link": d.drive_view_link, "extracted": d.extracted_json} for d in docs]
-    db.close()
     return {"candidate": {"id": c.id, "first_name": c.first_name, "last_name": c.last_name, "email": c.email, "phone": c.phone, "dob": c.dob, "role": c.role}, "documents": out_docs}
 
 @app.post("/upload")
-async def upload_documents(
+def upload_documents(
     background_tasks: BackgroundTasks,
+    db: Session = Depends(db_session),
     files: List[UploadFile] = File(...),
     categories: List[str] = Form(...),
     first_name: str = Form(...),
@@ -343,7 +331,6 @@ async def upload_documents(
     role_clean = (role or "").strip()
     if not role_clean: raise HTTPException(status_code=400, detail="Role is required.")
 
-    db = next(db_session())
     candidate = db.query(Candidate).filter(Candidate.email == email).first()
     folder_map = {}
     
@@ -371,9 +358,17 @@ async def upload_documents(
         temp_path = os.path.join(UPLOAD_TEMP_DIR, f"{uuid.uuid4().hex}_{file.filename}")
         
         try:
+            file_bytes = file.file.read()
+            if len(file_bytes) > 10 * 1024 * 1024:  # 10 MB limit
+                logger.warning(f"Rejected file {file.filename} exceeding 10MB")
+                raise HTTPException(status_code=413, detail=f"File {file.filename} exceeds the 10 MB limit.")
+            
             with open(temp_path, "wb") as fobj:
-                fobj.write(await file.read())
+                fobj.write(file_bytes)
+        except HTTPException:
+            raise
         except Exception as e:
+            logger.error(f"Error saving uploaded file {file.filename}: {e}")
             continue
 
         target_folder = {
@@ -388,8 +383,10 @@ async def upload_documents(
         filename = f"{role_clean.upper()}_{category.upper()}_{file.filename}"
 
         full_text = ""
-        try: full_text = extract_text_file(temp_path)
-        except Exception: pass
+        try: 
+            full_text = extract_text_file(temp_path)
+        except Exception as e: 
+            logger.error(f"Text extraction failed for {filename}: {e}")
 
         validation = run_validation_for_category(category, full_text)
         is_fake = validation.get("ai_fraud_status") == "FAKE"
@@ -414,7 +411,7 @@ async def upload_documents(
         expiry_date = None
         if validation.get("expiry"):
             try: expiry_date = dateparser.parse(validation.get("expiry")).date()
-            except: pass
+            except Exception as e: logger.debug(f"Failed to parse expiry date: {e}")
 
         doc_id = str(uuid.uuid4())[:36]
         doc = Document(
@@ -426,8 +423,10 @@ async def upload_documents(
         db.commit()
         saved_docs.append(doc)
 
-        try: os.remove(temp_path)
-        except: pass
+        try: 
+            os.remove(temp_path)
+        except Exception as e: 
+            logger.warning(f"Failed to remove temp file {temp_path}: {e}")
 
         results.append({
             "document_id": doc_id, "category": category, "drive_file_id": drive_id, 
@@ -444,12 +443,10 @@ async def upload_documents(
         subject = f"Manager Alert: Docs Uploaded by {first_name} {last_name}"
         background_tasks.add_task(send_summary_email, manager_email, subject, body)
 
-    db.close()
     return {"status": "success", "candidate_id": candidate_id, "documents": results}
 
 @app.delete("/documents/{document_id}")
-def delete_document(document_id: str):
-    db = next(db_session())
+def delete_document(document_id: str, db: Session = Depends(db_session)):
     try:
         doc = db.query(Document).filter(Document.id == document_id).first()
         if not doc:
@@ -462,20 +459,19 @@ def delete_document(document_id: str):
         db.delete(doc)
         db.commit()
         return {"status": "success", "message": "Document deleted"}
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error deleting document {document_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete document")
-    finally:
-        db.close()
 
 
 @app.post("/verify/{document_id}")
-async def verify_document(document_id: str):
+async def verify_document(document_id: str, db: Session = Depends(db_session)):
     """
     On-demand AHPRA verification for a specific document.
     Scrapes the AHPRA register and compares the result with the candidate's name.
     """
-    db = next(db_session())
     try:
         doc = db.query(Document).filter(Document.id == document_id).first()
         if not doc:
@@ -549,12 +545,10 @@ async def verify_document(document_id: str):
     except Exception as e:
         logger.error(f"Verification error for document {document_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Verification failed: {str(e)}")
-    finally:
-        db.close()
 
 
 def light_validate_document(document_id: str):
-    db = next(db_session())
+    db = SessionLocal()
     try:
         doc = db.query(Document).filter(Document.id == document_id).first()
         if not doc or doc.status == "FAKE": return
@@ -575,7 +569,7 @@ def light_validate_document(document_id: str):
                 if doc.expiry_date < today: status = "EXPIRED"
                 elif (doc.expiry_date - today).days <= 90: status = "EXPIRING"
                 else: status = "VALID"
-            except Exception: pass
+            except Exception as e: logger.error(f"Error checking expiry date: {e}")
 
         if doc.status != status:
             doc.status = status
@@ -586,8 +580,7 @@ def light_validate_document(document_id: str):
         db.close()
 
 @app.get("/export")
-def export_data():
-    db = next(db_session())
+def export_data(db: Session = Depends(db_session)):
     try:
         results = []
         candidates = db.query(Candidate).all()
@@ -613,12 +606,9 @@ def export_data():
     except Exception as e:
         logger.error(f"Error during /export: {e}")
         raise HTTPException(status_code=500, detail="Export failed")
-    finally:
-        db.close()
 
 @app.get("/export/salesforce")
-def export_salesforce():
-    db = next(db_session())
+def export_salesforce(db: Session = Depends(db_session)):
     try:
         results = []
         candidates = db.query(Candidate).all()
@@ -643,5 +633,3 @@ def export_salesforce():
     except Exception as e:
         logger.error(f"Error during /export/salesforce: {e}")
         raise HTTPException(status_code=500, detail="Salesforce export failed")
-    finally:
-        db.close()
