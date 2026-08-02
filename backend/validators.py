@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 # --- AZURE OPENAI CONFIG FOR FRAUD CHECK ---
 AZURE_KEY = os.environ.get("AZURE_OPENAI_API_KEY") 
-ENDPOINT = "https://crhr-model-testing.openai.azure.com/"
-DEPLOYMENT_NAME = "gpt-4.1-nano"
+ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT", "https://crhr-model-testing.openai.azure.com/")
+DEPLOYMENT_NAME = os.environ.get("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4.1-nano")
 
 client = None
 if AZURE_KEY:
