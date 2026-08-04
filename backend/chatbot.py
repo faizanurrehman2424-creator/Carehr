@@ -1,32 +1,58 @@
 import os
 import logging
-from openai import AzureOpenAI
+import json
+import requests
+import google.auth
+from google.auth.transport.requests import Request
 
 logger = logging.getLogger(__name__)
 
 # --- CONFIG ---
-AZURE_KEY = os.environ.get("AZURE_OPENAI_API_KEY") 
-ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT", "https://crhr-model-testing.openai.azure.com/")
-DEPLOYMENT_NAME = os.environ.get("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4.1-nano")
+def get_adc_path():
+    if os.environ.get("VERTEX_ADC_PATH"):
+        return os.environ.get("VERTEX_ADC_PATH")
+        
+    if os.name == "nt":
+        path = os.path.expandvars(r"%APPDATA%\gcloud\application_default_credentials.json")
+        if os.path.exists(path):
+            return path
+    else:
+        path = os.path.expanduser("~/.config/gcloud/application_default_credentials.json")
+        if os.path.exists(path):
+            return path
+        container_path = "/root/.config/gcloud/application_default_credentials.json"
+        if os.path.exists(container_path):
+            return container_path
+    return None
 
-client = None
-if AZURE_KEY:
+def get_vertex_token_and_project():
     try:
-        client = AzureOpenAI(
-            api_key=AZURE_KEY,
-            api_version="2024-05-01-preview", 
-            azure_endpoint=ENDPOINT
-        )
+        adc_path = get_adc_path()
+        if adc_path and os.path.exists(adc_path):
+            from google.auth import load_credentials_from_file
+            creds, project_id = load_credentials_from_file(adc_path, scopes=["https://www.googleapis.com/auth/cloud-platform"])
+        else:
+            creds, project_id = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
+            
+        if not project_id:
+            project_id = os.environ.get("GCP_PROJECT")
+            
+        if not creds.valid:
+            creds.refresh(Request())
+            
+        return creds.token, project_id
     except Exception as e:
-        logger.error(f"Failed to initialize Azure OpenAI client: {e}")
+        logger.error(f"Failed to load Vertex credentials: {e}")
+        return None, None
 
 def process_chat_message_stream(user_message: str, candidate_data: dict, documents: list):
     """
-    Uses GPT-4.1-Nano to act as a proactive, friendly CareHR Assistant.
-    Now uses Generator to STREAM the response to the frontend!
+    Uses Gemini 2.5 Flash on Google Vertex AI to act as a proactive, friendly CareHR Assistant.
+    Streams the response chunk by chunk to the frontend.
     """
-    if not client:
-        yield "My systems are currently booting up. Please check the Azure API Key configuration!"
+    token, project_id = get_vertex_token_and_project()
+    if not token or not project_id:
+        yield "My systems are currently booting up. Please ensure Google Cloud Application Default Credentials (ADC) are set up on the host!"
         return
 
     try:
@@ -68,23 +94,71 @@ def process_chat_message_stream(user_message: str, candidate_data: dict, documen
         5. LIMITATIONS: You do not upload the files yourself. The chat interface handles that in the background. Do not invent fake document statuses.
         """
 
-        # 4. Generate Streamed Response
-        response = client.chat.completions.create(
-            model=DEPLOYMENT_NAME,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
-            ],
-            temperature=0.7, 
-            max_tokens=400,
-            stream=True  # MAGIC WORD: Tells OpenAI to stream
-        )
+        # 4. Generate Streamed Response via REST API
+        location = os.environ.get("GCP_LOCATION", "global")
+        url = f"https://aiplatform.googleapis.com/v1/projects/{project_id}/locations/{location}/publishers/google/models/gemini-2.5-flash:streamGenerateContent"
         
-        for chunk in response:
-            if chunk.choices and len(chunk.choices) > 0:
-                content = chunk.choices[0].delta.content
-                if content:
-                    yield content
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "text": user_message
+                        }
+                    ]
+                }
+            ],
+            "systemInstruction": {
+                "parts": [
+                    {
+                        "text": system_prompt
+                    }
+                ]
+            },
+            "generationConfig": {
+                "temperature": 0.7,
+                "maxOutputTokens": 400
+            }
+        }
+
+        response = requests.post(url, headers=headers, json=payload, stream=True)
+        response.raise_for_status()
+
+        # Parse response stream of JSON parts incrementally
+        buffer = ""
+        for chunk in response.iter_content(chunk_size=1024, decode_unicode=True):
+            if not chunk:
+                continue
+            buffer += chunk
+            if buffer.startswith("["):
+                buffer = buffer[1:].strip()
+            
+            while True:
+                buffer = buffer.strip()
+                if buffer.startswith(","):
+                    buffer = buffer[1:].strip()
+                if not buffer or buffer == "]":
+                    break
+                
+                try:
+                    obj, index = json.JSONDecoder().raw_decode(buffer)
+                    buffer = buffer[index:].strip()
+                    
+                    candidates = obj.get("candidates", [])
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts:
+                            text = parts[0].get("text", "")
+                            if text:
+                                yield text
+                except json.JSONDecodeError:
+                    break
 
     except Exception as e:
         logger.error(f"Chatbot Error: {e}")

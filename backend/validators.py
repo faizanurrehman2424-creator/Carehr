@@ -8,34 +8,25 @@ from typing import Optional, List, Dict
 import io
 import logging
 import os
-from openai import AzureOpenAI
+from chatbot import get_vertex_token_and_project
+import requests
+import json
 
 # configure a simple logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --- AZURE OPENAI CONFIG FOR FRAUD CHECK ---
-AZURE_KEY = os.environ.get("AZURE_OPENAI_API_KEY") 
-ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT", "https://crhr-model-testing.openai.azure.com/")
-DEPLOYMENT_NAME = os.environ.get("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4.1-nano")
-
-client = None
-if AZURE_KEY:
-    try:
-        client = AzureOpenAI(
-            api_key=AZURE_KEY,
-            api_version="2024-05-01-preview", 
-            azure_endpoint=ENDPOINT
-        )
-    except Exception as e:
-        logger.error(f"Failed to initialize Azure OpenAI client in validators: {e}")
-
 # -------------------------
 # STRICT AI FRAUD & MATCH CHECK
 # -------------------------
 def smart_ai_fraud_check(text: str, category: str) -> dict:
-    if not client or not text or len(text) < 10:
-        return {"status": "VALID", "reason": "No text or AI unavailable"}
+    if not text or len(text) < 10:
+        return {"status": "VALID", "reason": "No text to analyze"}
+        
+    token, project_id = get_vertex_token_and_project()
+    if not token or not project_id:
+        logger.warning("AI credentials not available. Skipping Fraud Check.")
+        return {"status": "VALID", "reason": "AI check skipped (credentials not configured)."}
     
     prompt = f"""
     You are a strict compliance AI for a healthcare system.
@@ -55,14 +46,42 @@ def smart_ai_fraud_check(text: str, category: str) -> dict:
     """
     
     try:
-        resp = client.chat.completions.create(
-            model=DEPLOYMENT_NAME,
-            messages=[{"role": "system", "content": prompt}],
-            temperature=0.0,
-            max_tokens=10
-        )
-        res_str = resp.choices[0].message.content.strip().upper()
+        location = os.environ.get("GCP_LOCATION", "global")
+        url = f"https://aiplatform.googleapis.com/v1/projects/{project_id}/locations/{location}/publishers/google/models/gemini-2.5-flash:generateContent"
         
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "text": prompt
+                        }
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.0,
+                "maxOutputTokens": 10
+            }
+        }
+        
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        
+        resp_json = response.json()
+        candidates = resp_json.get("candidates", [])
+        res_str = ""
+        if candidates:
+            parts = candidates[0].get("content", {}).get("parts", [])
+            if parts:
+                res_str = parts[0].get("text", "").strip().upper()
+                
         if "FAKE" in res_str:
             return {"status": "FAKE", "reason": f"AI detected a category mismatch or fake document for '{category}'."}
         
