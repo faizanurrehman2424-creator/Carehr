@@ -28,6 +28,8 @@ def get_adc_path():
 def get_vertex_token_and_project():
     try:
         adc_path = get_adc_path()
+        project_id = None
+        
         if adc_path and os.path.exists(adc_path):
             from google.auth import load_credentials_from_file
             creds, project_id = load_credentials_from_file(adc_path, scopes=["https://www.googleapis.com/auth/cloud-platform"])
@@ -35,10 +37,34 @@ def get_vertex_token_and_project():
             creds, project_id = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
             
         if not project_id:
-            project_id = os.environ.get("GCP_PROJECT")
+            project_id = os.environ.get("GCP_PROJECT") or os.environ.get("GOOGLE_CLOUD_PROJECT")
+            
+        # Parse project_id from active gcloud config if still None
+        if not project_id:
+            try:
+                config_dir = os.path.dirname(adc_path) if adc_path else None
+                if config_dir and os.path.exists(config_dir):
+                    active_config_path = os.path.join(config_dir, "active_config")
+                    if os.path.exists(active_config_path):
+                        with open(active_config_path, "r") as f:
+                            config_name = f.read().strip()
+                        config_path = os.path.join(config_dir, "configurations", f"config_{config_name}")
+                        if os.path.exists(config_path):
+                            import configparser
+                            cfg = configparser.ConfigParser()
+                            cfg.read(config_path)
+                            if "core" in cfg and "project" in cfg["core"]:
+                                project_id = cfg["core"]["project"]
+            except Exception as ex:
+                logger.error(f"Error parsing gcloud config for project: {ex}")
             
         if not creds.valid:
             creds.refresh(Request())
+            
+        if creds.token and project_id:
+            logger.info(f"Loaded Vertex token successfully, Project ID: {project_id}")
+        else:
+            logger.warning(f"Vertex credentials check failed. Token is present: {bool(creds.token)}, Project ID: {project_id}")
             
         return creds.token, project_id
     except Exception as e:
