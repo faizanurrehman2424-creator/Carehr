@@ -206,3 +206,13 @@ Completed Items:
 [x] Backend Architecture Optimization: Switched to FastAPI Dependency Injection (`Depends(db_session)`) preventing DB connection leaks and fixed event-loop blocking issues in `/upload`.
 [x] Backend Security & Reliability: Enforced strict 10MB limits on file uploads to prevent DoS attacks, removed silent exceptions for explicit logging, and fixed background task runtime bugs.
 [x] AHPRA Verification & Fraud Detection: Live scraping of the AHPRA register via Playwright and AI-powered document classification to flag mismatched uploads. Implemented `difflib` for fuzzy name matching, making it resilient to typos and format variations.
+
+10. Recent Updates (August 2026 Sprint)
+This sprint focused on switching AI models to Vertex AI, hardening database connections, and addressing frontend glitches.
+
+Completed Items:
+[x] Google Cloud Vertex AI Integration: Migrated the chatbot and AI fraud classification from Azure OpenAI to Google Cloud Vertex AI (Gemini 2.5 Flash). Built a custom parser for REST stream chunks using `raw_decode` to enable smooth text streaming.
+[x] Auto-resolving ADC Configuration: Configured automatic GCP Project ID resolution by parsing mounted `gcloud` active configuration files directly inside headless Docker environments.
+[x] DB Connection Resiliency: Configured database connection pooling parameters (`pool_pre_ping=True`, `pool_recycle=1800`) to mitigate psycopg2 database closed errors on cloud database pools (Supabase).
+[x] Frontend Session Retention: Integrated `localStorage`-based session retention for user logins and admin access to prevent session wipes when swapping portal views.
+[x] Admin Dashboard Layout Polish: Resolved container shrinking bugs in `CandidateList.tsx` to preserve column widths when candidate records are expanded.
